@@ -1,0 +1,63 @@
+.hs_form.wrap .form-wrap{
+
+    margin: 0.75rem 0;
+
+}
+
+.progress{
+
+    height: 25px;
+
+    margin: 0.75rem 0;
+
+    border: 1px solid #007cba;
+
+}
+
+.progress .progress_bar{
+
+    background-color: #007cba;
+
+    height: 100%;
+
+    color: white;
+
+    text-align: center;
+
+}
+
+
+
+.progress .progress_bar span{
+
+    line-height: 25px;
+
+}
+
+.d-flex{
+
+    display: flex;
+
+}
+
+.cur_desc input{width: 50%;}
+
+.new_desc{margin-left: 20px; margin-bottom: 15px; width: 50%;}
+
+.new_desc label{display: block;}
+
+.new_desc_h4{margin-left: 20px;}
+
+.new_desc textarea{
+
+    width: 100%;
+
+    display: block;
+
+}
+
+.del_desc.hidden{
+
+    display: none !important;
+
+}
