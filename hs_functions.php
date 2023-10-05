@@ -133,7 +133,6 @@ function save_new_post() {
     ));
 
     if (!$query->have_posts()) {
-        $chinese_post_id = null;
         $newsEngContent = file_get_html($news['newsItemUrl'], false);
         $contentEngTag = $newsEngContent->find(".articleContent", 0);
         $elementsToRemove = $contentEngTag->find('h2', 0);
@@ -152,6 +151,7 @@ function save_new_post() {
         );
     
         $english_post_id  = wp_insert_post($post_eng_data);
+        wp_set_post_terms($english_post_id , 'en', 'language');
         
         $images = $contentEngTag ? $contentEngTag->find('img') : [];
         foreach ($images as $image) {
@@ -206,7 +206,6 @@ function save_new_post() {
                 'post_content'  => $contentEngTag ? $contentEngTag : ''
             )
         );
-        wp_set_post_terms($english_post_id , 'en', 'language');
     
     
         $engUrl = $news['newsItemUrl'];
@@ -232,6 +231,7 @@ function save_new_post() {
             );
     
             $chinese_post_id = wp_insert_post($chinese_post);
+            wp_set_post_terms($chinese_post_id, 'zh', 'language');
             
             $chinese_images = $contentTag ? $contentTag->find('img') : [];
             foreach ($chinese_images as $image) {
@@ -286,26 +286,16 @@ function save_new_post() {
                     'post_content'  => $contentTag ? $contentTag : ''
                 )
             );
-            wp_set_post_terms($chinese_post_id, 'zh', 'language');
         }
-        if($chinese_post_id !== null) {
-            // Link the posts for translation
-            if ( function_exists( 'icl_object_id' ) ) {
-                // // Get the WPML language code for Chinese
-                // $chinese_language_code = apply_filters( 'wpml_element_language_code', null, array(
-                //     'element_id' => $chinese_post_id,
-                //     'element_type' => 'post'
-                // ) );
-    
-                // Set the translation relationship between the posts
-                do_action( 'wpml_set_element_language_details', $english_post_id, 'post', null, 'en' );
-                do_action( 'wpml_set_element_language_details', $chinese_post_id, 'post', $english_post_id, 'zh' );
-                // do_action( 'wpml_set_element_language_details', $chinese_post_id, 'post', $english_post_id, $chinese_language_code );
-            }
+
+
+        if (function_exists('pll_save_post_translations')) {
+            pll_save_post_translations(array('en' => $english_post_id, 'zh' => $chinese_post_id));
         }
+
     }
 
-    echo json_encode(array('success'=> true));
+    echo json_encode(array('success'=> true,'zh'=>$chinese_post_id,'en'=>$english_post_id));
     exit;
 }
 
@@ -396,7 +386,6 @@ function save_new_event() {
     ));
 
     if (!$query->have_posts()) {
-        $chinese_post_id = null;
         $newsEngContent = file_get_html($news['newsItemUrl'], false);
         $contentEngTag = $newsEngContent->find(".articleContent", 0);
         $elementsToRemove = $contentEngTag->find('h2', 0);
@@ -415,6 +404,7 @@ function save_new_event() {
         );
     
         $english_post_id  = wp_insert_post($post_eng_data);
+        wp_set_post_terms($english_post_id , 'en', 'language');
         
         $images = $contentEngTag ? $contentEngTag->find('img') : [];
         foreach ($images as $image) {
@@ -469,10 +459,10 @@ function save_new_event() {
                 'post_content'  => $contentEngTag ? $contentEngTag : ''
             )
         );
-        wp_set_post_terms($english_post_id , 'en', 'language');
 
         $engUrl = $news['newsItemUrl'];
         $chiUrl = str_replace('/us/', '/hk/', $engUrl);
+        $categoryZh = "events-zh";
     
         $newsChiContent = file_get_html($chiUrl, false);
         if(!empty($newsChiContent)) {
@@ -482,17 +472,19 @@ function save_new_event() {
                 $elementsToRemove->outertext = '';
             }
             $content = $contentTag->save();
+
             $chinese_post = array(
                 'post_type' => 'post',
                 'post_title'    => wp_strip_all_tags($news['title']),
                 'post_content'  => $content,
                 'post_author'   => get_current_user_id(),
-                'category_name' => array($category),
+                'category_name' => array($categoryZh),
                 'post_excerpt'  => wp_strip_all_tags($news['abstract']),
                 'post_date'     => date('Y/m/d', strtotime($news['date']))
             );
     
             $chinese_post_id = wp_insert_post($chinese_post);
+            wp_set_post_terms($chinese_post_id, 'zh', 'language');
             
             $chinese_images = $contentTag ? $contentTag->find('img') : [];
             foreach ($chinese_images as $image) {
@@ -536,33 +528,19 @@ function save_new_event() {
             );
     
             $media_id = media_handle_sideload($media_data, $chinese_post_id);
-            $category .= "-zh";
             set_post_thumbnail( $chinese_post_id, $media_id );
             $chinese_post_id = wp_update_post(
                 array(
                     'ID'            => (int) $chinese_post_id,
-                    'category_name' => array($category),
+                    'category_name' => array($categoryZh),
                     'post_status'   => 'publish',
                     'post_date'     => date('Y/m/d', strtotime($news['date'])),
                     'post_content'  => $contentTag ? $contentTag : ''
                 )
             );
-            wp_set_post_terms($chinese_post_id, 'zh', 'language');
         }
-        if($chinese_post_id !== null) {
-            // Link the posts for translation
-            if ( function_exists( 'icl_object_id' ) ) {
-                // // Get the WPML language code for Chinese
-                // $chinese_language_code = apply_filters( 'wpml_element_language_code', null, array(
-                //     'element_id' => $chinese_post_id,
-                //     'element_type' => 'post'
-                // ) );
-    
-                // Set the translation relationship between the posts
-                do_action( 'wpml_set_element_language_details', $english_post_id, 'post', null, 'en' );
-                do_action( 'wpml_set_element_language_details', $chinese_post_id, 'post', $english_post_id, 'zh' );
-                // do_action( 'wpml_set_element_language_details', $chinese_post_id, 'post', $english_post_id, $chinese_language_code );
-            }
+        if (function_exists('pll_save_post_translations')) {
+            pll_save_post_translations(array('en' => $english_post_id, 'zh' => $chinese_post_id));
         }
     }
 
