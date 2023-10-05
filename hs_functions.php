@@ -156,7 +156,9 @@ function save_new_post() {
         $images = $contentEngTag ? $contentEngTag->find('img') : [];
         foreach ($images as $image) {
             $origSrc = $src = trim($image->src);
-            $src = $scm_hsu_edu_hk_home_url.$src;
+            if(strpos($src, 'http') === FALSE) {
+                $src = $scm_hsu_edu_hk_home_url.$src;
+            }
             // Download to temp folder
             $tmp = download_url( $src );
             $file_array = array();
@@ -236,7 +238,9 @@ function save_new_post() {
             $chinese_images = $contentTag ? $contentTag->find('img') : [];
             foreach ($chinese_images as $image) {
                 $origSrc = $src = trim($image->src);
-                $src = $scm_hsu_edu_hk_home_url.$src;
+                if(strpos($src, 'http') === FALSE) {
+                    $src = $scm_hsu_edu_hk_home_url.$src;
+                }
                 // Download to temp folder
                 $tmp = download_url( $src );
                 $file_array = array();
@@ -409,7 +413,9 @@ function save_new_event() {
         $images = $contentEngTag ? $contentEngTag->find('img') : [];
         foreach ($images as $image) {
             $origSrc = $src = trim($image->src);
-            $src = $scm_hsu_edu_hk_home_url.$src;
+            if(strpos($src, 'http') === FALSE) {
+                $src = $scm_hsu_edu_hk_home_url.$src;
+            }
             // Download to temp folder
             $tmp = download_url( $src );
             $file_array = array();
@@ -489,7 +495,9 @@ function save_new_event() {
             $chinese_images = $contentTag ? $contentTag->find('img') : [];
             foreach ($chinese_images as $image) {
                 $origSrc = $src = trim($image->src);
-                $src = $scm_hsu_edu_hk_home_url.$src;
+                if(strpos($src, 'http') === FALSE) {
+                    $src = $scm_hsu_edu_hk_home_url.$src;
+                }
                 // Download to temp folder
                 $tmp = download_url( $src );
                 $file_array = array();
