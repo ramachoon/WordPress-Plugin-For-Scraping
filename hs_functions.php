@@ -156,39 +156,41 @@ function save_new_post() {
         $images = $contentEngTag ? $contentEngTag->find('img') : [];
         foreach ($images as $image) {
             $origSrc = $src = trim($image->src);
-            if(strpos($src, 'http') === FALSE) {
-                $src = $scm_hsu_edu_hk_home_url.$src;
-            }
-            // Download to temp folder
-            $tmp = download_url( $src );
-            $file_array = array();
-            $newSrc = '';
-    
-            preg_match('/[^\?]+\.(jpg|jpe|jpeg|gif|png)/i', $src, $matches);
-            if (isset($matches[0]) && $matches[0]) {
-                $file_array['name'] = basename($matches[0]);
-                $file_array['tmp_name'] = $tmp;
-                if ( is_wp_error( $tmp ) ) {
-                    @unlink($file_array['tmp_name']);
-                    $file_array['tmp_name'] = '';
-                } else {
-                    // do the validation and storage stuff
-                    $imageId = media_handle_sideload( $file_array, $postId, '');
-    
-                    // If error storing permanently, unlink
-                    if ( is_wp_error($imageId) ) {
-                        @unlink($file_array['tmp_name']);
-                    } else {
-                        $newSrc = wp_get_attachment_url($imageId);
-                    }
+            if(strpos($src, 'attached') !== FALSE) {
+                if(strpos($src, 'http') === FALSE) {
+                    $src = $scm_hsu_edu_hk_home_url.$src;
                 }
-            } else {
-                @unlink($tmp);
-            }
-    
-            // Replace images url in code
-            if ($newSrc) {
-                $contentEngTag = str_replace(htmlentities($origSrc), $newSrc, $contentEngTag);
+                // Download to temp folder
+                $tmp = download_url( $src );
+                $file_array = array();
+                $newSrc = '';
+        
+                preg_match('/[^\?]+\.(jpg|jpe|jpeg|gif|png)/i', $src, $matches);
+                if (isset($matches[0]) && $matches[0]) {
+                    $file_array['name'] = basename($matches[0]);
+                    $file_array['tmp_name'] = $tmp;
+                    if ( is_wp_error( $tmp ) ) {
+                        @unlink($file_array['tmp_name']);
+                        $file_array['tmp_name'] = '';
+                    } else {
+                        // do the validation and storage stuff
+                        $imageId = media_handle_sideload( $file_array, $postId, '');
+        
+                        // If error storing permanently, unlink
+                        if ( is_wp_error($imageId) ) {
+                            @unlink($file_array['tmp_name']);
+                        } else {
+                            $newSrc = wp_get_attachment_url($imageId);
+                        }
+                    }
+                } else {
+                    @unlink($tmp);
+                }
+        
+                // Replace images url in code
+                if ($newSrc) {
+                    $contentEngTag = str_replace(htmlentities($origSrc), $newSrc, $contentEngTag);
+                }
             }
         }
         $media_data = array(
@@ -238,39 +240,41 @@ function save_new_post() {
             $chinese_images = $contentTag ? $contentTag->find('img') : [];
             foreach ($chinese_images as $image) {
                 $origSrc = $src = trim($image->src);
-                if(strpos($src, 'http') === FALSE) {
-                    $src = $scm_hsu_edu_hk_home_url.$src;
-                }
-                // Download to temp folder
-                $tmp = download_url( $src );
-                $file_array = array();
-                $newSrc = '';
-    
-                preg_match('/[^\?]+\.(jpg|jpe|jpeg|gif|png)/i', $src, $matches);
-                if (isset($matches[0]) && $matches[0]) {
-                    $file_array['name'] = basename($matches[0]);
-                    $file_array['tmp_name'] = $tmp;
-                    if ( is_wp_error( $tmp ) ) {
-                        @unlink($file_array['tmp_name']);
-                        $file_array['tmp_name'] = '';
-                    } else {
-                        // do the validation and storage stuff
-                        $imageId = media_handle_sideload( $file_array, $postId, '');
-    
-                        // If error storing permanently, unlink
-                        if ( is_wp_error($imageId) ) {
-                            @unlink($file_array['tmp_name']);
-                        } else {
-                            $newSrc = wp_get_attachment_url($imageId);
-                        }
+                    if(strpos($src, 'attached') !== FALSE) {
+                    if(strpos($src, 'http') === FALSE) {
+                        $src = $scm_hsu_edu_hk_home_url.$src;
                     }
-                } else {
-                    @unlink($tmp);
-                }
-    
-                // Replace images url in code
-                if ($newSrc) {
-                    $contentTag = str_replace(htmlentities($origSrc), $newSrc, $contentTag);
+                    // Download to temp folder
+                    $tmp = download_url( $src );
+                    $file_array = array();
+                    $newSrc = '';
+        
+                    preg_match('/[^\?]+\.(jpg|jpe|jpeg|gif|png)/i', $src, $matches);
+                    if (isset($matches[0]) && $matches[0]) {
+                        $file_array['name'] = basename($matches[0]);
+                        $file_array['tmp_name'] = $tmp;
+                        if ( is_wp_error( $tmp ) ) {
+                            @unlink($file_array['tmp_name']);
+                            $file_array['tmp_name'] = '';
+                        } else {
+                            // do the validation and storage stuff
+                            $imageId = media_handle_sideload( $file_array, $postId, '');
+        
+                            // If error storing permanently, unlink
+                            if ( is_wp_error($imageId) ) {
+                                @unlink($file_array['tmp_name']);
+                            } else {
+                                $newSrc = wp_get_attachment_url($imageId);
+                            }
+                        }
+                    } else {
+                        @unlink($tmp);
+                    }
+        
+                    // Replace images url in code
+                    if ($newSrc) {
+                        $contentTag = str_replace(htmlentities($origSrc), $newSrc, $contentTag);
+                    }
                 }
             }
             $media_data = array(
@@ -413,39 +417,41 @@ function save_new_event() {
         $images = $contentEngTag ? $contentEngTag->find('img') : [];
         foreach ($images as $image) {
             $origSrc = $src = trim($image->src);
-            if(strpos($src, 'http') === FALSE) {
-                $src = $scm_hsu_edu_hk_home_url.$src;
-            }
-            // Download to temp folder
-            $tmp = download_url( $src );
-            $file_array = array();
-            $newSrc = '';
-    
-            preg_match('/[^\?]+\.(jpg|jpe|jpeg|gif|png)/i', $src, $matches);
-            if (isset($matches[0]) && $matches[0]) {
-                $file_array['name'] = basename($matches[0]);
-                $file_array['tmp_name'] = $tmp;
-                if ( is_wp_error( $tmp ) ) {
-                    @unlink($file_array['tmp_name']);
-                    $file_array['tmp_name'] = '';
-                } else {
-                    // do the validation and storage stuff
-                    $imageId = media_handle_sideload( $file_array, $postId, '');
-    
-                    // If error storing permanently, unlink
-                    if ( is_wp_error($imageId) ) {
-                        @unlink($file_array['tmp_name']);
-                    } else {
-                        $newSrc = wp_get_attachment_url($imageId);
-                    }
+            if(strpos($src, 'attached') !== FALSE) {
+                if(strpos($src, 'http') === FALSE) {
+                    $src = $scm_hsu_edu_hk_home_url.$src;
                 }
-            } else {
-                @unlink($tmp);
-            }
-    
-            // Replace images url in code
-            if ($newSrc) {
-                $contentEngTag = str_replace(htmlentities($origSrc), $newSrc, $contentEngTag);
+                // Download to temp folder
+                $tmp = download_url( $src );
+                $file_array = array();
+                $newSrc = '';
+        
+                preg_match('/[^\?]+\.(jpg|jpe|jpeg|gif|png)/i', $src, $matches);
+                if (isset($matches[0]) && $matches[0]) {
+                    $file_array['name'] = basename($matches[0]);
+                    $file_array['tmp_name'] = $tmp;
+                    if ( is_wp_error( $tmp ) ) {
+                        @unlink($file_array['tmp_name']);
+                        $file_array['tmp_name'] = '';
+                    } else {
+                        // do the validation and storage stuff
+                        $imageId = media_handle_sideload( $file_array, $postId, '');
+        
+                        // If error storing permanently, unlink
+                        if ( is_wp_error($imageId) ) {
+                            @unlink($file_array['tmp_name']);
+                        } else {
+                            $newSrc = wp_get_attachment_url($imageId);
+                        }
+                    }
+                } else {
+                    @unlink($tmp);
+                }
+        
+                // Replace images url in code
+                if ($newSrc) {
+                    $contentEngTag = str_replace(htmlentities($origSrc), $newSrc, $contentEngTag);
+                }
             }
         }
         $media_data = array(
@@ -495,39 +501,41 @@ function save_new_event() {
             $chinese_images = $contentTag ? $contentTag->find('img') : [];
             foreach ($chinese_images as $image) {
                 $origSrc = $src = trim($image->src);
-                if(strpos($src, 'http') === FALSE) {
-                    $src = $scm_hsu_edu_hk_home_url.$src;
-                }
-                // Download to temp folder
-                $tmp = download_url( $src );
-                $file_array = array();
-                $newSrc = '';
-    
-                preg_match('/[^\?]+\.(jpg|jpe|jpeg|gif|png)/i', $src, $matches);
-                if (isset($matches[0]) && $matches[0]) {
-                    $file_array['name'] = basename($matches[0]);
-                    $file_array['tmp_name'] = $tmp;
-                    if ( is_wp_error( $tmp ) ) {
-                        @unlink($file_array['tmp_name']);
-                        $file_array['tmp_name'] = '';
-                    } else {
-                        // do the validation and storage stuff
-                        $imageId = media_handle_sideload( $file_array, $postId, '');
-    
-                        // If error storing permanently, unlink
-                        if ( is_wp_error($imageId) ) {
-                            @unlink($file_array['tmp_name']);
-                        } else {
-                            $newSrc = wp_get_attachment_url($imageId);
-                        }
+                if(strpos($src, 'attached') !== FALSE) {
+                    if(strpos($src, 'http') === FALSE) {
+                        $src = $scm_hsu_edu_hk_home_url.$src;
                     }
-                } else {
-                    @unlink($tmp);
-                }
-    
-                // Replace images url in code
-                if ($newSrc) {
-                    $contentTag = str_replace(htmlentities($origSrc), $newSrc, $contentTag);
+                    // Download to temp folder
+                    $tmp = download_url( $src );
+                    $file_array = array();
+                    $newSrc = '';
+        
+                    preg_match('/[^\?]+\.(jpg|jpe|jpeg|gif|png)/i', $src, $matches);
+                    if (isset($matches[0]) && $matches[0]) {
+                        $file_array['name'] = basename($matches[0]);
+                        $file_array['tmp_name'] = $tmp;
+                        if ( is_wp_error( $tmp ) ) {
+                            @unlink($file_array['tmp_name']);
+                            $file_array['tmp_name'] = '';
+                        } else {
+                            // do the validation and storage stuff
+                            $imageId = media_handle_sideload( $file_array, $postId, '');
+        
+                            // If error storing permanently, unlink
+                            if ( is_wp_error($imageId) ) {
+                                @unlink($file_array['tmp_name']);
+                            } else {
+                                $newSrc = wp_get_attachment_url($imageId);
+                            }
+                        }
+                    } else {
+                        @unlink($tmp);
+                    }
+        
+                    // Replace images url in code
+                    if ($newSrc) {
+                        $contentTag = str_replace(htmlentities($origSrc), $newSrc, $contentTag);
+                    }
                 }
             }
             $media_data = array(
