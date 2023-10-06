@@ -1,6 +1,5 @@
 <?php
     require_once 'includes/simple_html_dom.php';
-    require_once ABSPATH . 'wp-admin/includes/media.php';
 
 /**
 
@@ -134,126 +133,34 @@ function save_new_post($newsData) {
         
         try {
             $newsEngContent = file_get_html($news['newsItemUrl'], false);
-        } catch ( Exception $e) {
-        }
-        if(!empty($newsEngContent)) {
+            if(!empty($newsEngContent)) {
 
-            $contentEngTag = $newsEngContent->find(".articleContent", 0);
-            $elementsToRemove = $contentEngTag->find('h2', 0);
-            if ($elementsToRemove) {
-                $elementsToRemove->outertext = '';
-            }
-            $content = $contentEngTag->save();
-            $post_eng_data = array(
-                'post_type' => 'post',
-                'post_title'    => wp_strip_all_tags($news['title']),
-                'post_content'  => $content,
-                'post_author'   => get_current_user_id(),
-                'category_name' => array($category),
-                'post_excerpt'  => wp_strip_all_tags($news['abstract']),
-                'post_date'     => date('Y/m/d', strtotime($news['date']))
-            );
-            $english_post_id  = wp_insert_post($post_eng_data);
-
-            wp_set_post_terms($english_post_id , 'en', 'language');
-
-            $images = $contentEngTag ? $contentEngTag->find('img') : [];
-            if($images !== null || isset($images) || !empty($images)) {
-                foreach ($images as $image) {
-                    $origSrc = $src = trim($image->src);
-                    if (strpos($src, 'data:image') === 0) {
-                        // Skip current iteration and move to the next
-                        continue;
-                    }
-                    if(strpos($src, 'http') === FALSE) {
-                        $src = $scm_hsu_edu_hk_home_url.$src;
-                    }
-                    // Download to temp folder
-                    $tmp = download_url( $src );
-                    $file_array = array();
-                    $newSrc = '';
-            
-                    preg_match('/[^\?]+\.(jpg|jpe|jpeg|gif|png)/i', $src, $matches);
-                    if (isset($matches[0]) && $matches[0]) {
-                        $file_array['name'] = basename($matches[0]);
-                        $file_array['tmp_name'] = $tmp;
-                        if ( is_wp_error( $tmp ) ) {
-                            @unlink($file_array['tmp_name']);
-                            $file_array['tmp_name'] = '';
-                        } else {
-                            // do the validation and storage stuff
-                            $imageId = media_handle_sideload( $file_array, $english_post_id, '');
-            
-                            // If error storing permanently, unlink
-                            if ( is_wp_error($imageId) ) {
-                                @unlink($file_array['tmp_name']);
-                            } else {
-                                $newSrc = wp_get_attachment_url($imageId);
-                            }
-                        }
-                    } else {
-                        @unlink($tmp);
-                    }
-            
-                    // Replace images url in code
-                    if ($newSrc) {
-                        $contentEngTag = str_replace(htmlentities($origSrc), $newSrc, $contentEngTag);
-                    }
-                }
-            }
-            $media_data = array(
-                'name'     => basename($news['featuredImgSrc']),
-                'tmp_name' => download_url($news['featuredImgSrc'])
-            );
-        
-            $media_id = media_handle_sideload($media_data, $english_post_id );
-        
-            set_post_thumbnail( $english_post_id , $media_id );
-            $english_post_id  = wp_update_post(
-                array(
-                    'ID'            => (int) $english_post_id ,
-                    'category_name' => array($category),
-                    'post_status'   => 'publish',
-                    'post_date'     => date('Y/m/d', strtotime($news['date'])),
-                    'post_content'  => $contentEngTag ? $contentEngTag : ''
-                )
-            );
-        
-        
-            $engUrl = $news['newsItemUrl'];
-            $chiUrl = str_replace('/us/', '/hk/', $engUrl);
-        
-            $newsChiContent = file_get_html($chiUrl, false);
-            if(!empty($newsChiContent)) {
-                $contentTag = $newsChiContent->find(".articleContent", 0);
-                $elementsToRemove = $contentTag->find('h2', 0);
+                $contentEngTag = $newsEngContent->find(".articleContent", 0);
+                $elementsToRemove = $contentEngTag->find('h2', 0);
                 if ($elementsToRemove) {
                     $elementsToRemove->outertext = '';
                 }
-                $content = $contentTag->save();
-                $categoryZh = "news-zh";
-                $chinese_post = array(
+                $content = $contentEngTag->save();
+                $post_eng_data = array(
                     'post_type' => 'post',
                     'post_title'    => wp_strip_all_tags($news['title']),
                     'post_content'  => $content,
-                    'post_author'   => get_current_user_id(),
-                    'category_name' => array($categoryZh),
+                    'post_author'   => get_current_user_id() ? get_current_user_id() : 1,
                     'post_excerpt'  => wp_strip_all_tags($news['abstract']),
                     'post_date'     => date('Y/m/d', strtotime($news['date']))
                 );
-        
-                $chinese_post_id = wp_insert_post($chinese_post);
-                wp_set_post_terms($chinese_post_id, 'zh', 'language');
-                
-                $chinese_images = $contentTag ? $contentTag->find('img') : [];
-                if($chinese_images !== null || isset($chinese_images) || !empty($chinese_images)) {
-                    foreach ($chinese_images as $image) {
+                $english_post_id  = wp_insert_post($post_eng_data);
+    
+                wp_set_post_terms($english_post_id , 'en', 'language');
+    
+                $images = $contentEngTag ? $contentEngTag->find('img') : [];
+                if($images !== null && isset($images) && !empty($images)) {
+                    foreach ($images as $image) {
                         $origSrc = $src = trim($image->src);
                         if (strpos($src, 'data:image') === 0) {
                             // Skip current iteration and move to the next
                             continue;
                         }
-
                         if(strpos($src, 'http') === FALSE) {
                             $src = $scm_hsu_edu_hk_home_url.$src;
                         }
@@ -261,7 +168,7 @@ function save_new_post($newsData) {
                         $tmp = download_url( $src );
                         $file_array = array();
                         $newSrc = '';
-            
+                
                         preg_match('/[^\?]+\.(jpg|jpe|jpeg|gif|png)/i', $src, $matches);
                         if (isset($matches[0]) && $matches[0]) {
                             $file_array['name'] = basename($matches[0]);
@@ -271,8 +178,8 @@ function save_new_post($newsData) {
                                 $file_array['tmp_name'] = '';
                             } else {
                                 // do the validation and storage stuff
-                                $imageId = media_handle_sideload( $file_array, $chinese_post_id, '');
-            
+                                $imageId = media_handle_sideload( $file_array, $english_post_id, '');
+                
                                 // If error storing permanently, unlink
                                 if ( is_wp_error($imageId) ) {
                                     @unlink($file_array['tmp_name']);
@@ -283,10 +190,10 @@ function save_new_post($newsData) {
                         } else {
                             @unlink($tmp);
                         }
-            
+                
                         // Replace images url in code
                         if ($newSrc) {
-                            $contentTag = str_replace(htmlentities($origSrc), $newSrc, $contentTag);
+                            $contentEngTag = str_replace(htmlentities($origSrc), $newSrc, $contentEngTag);
                         }
                     }
                 }
@@ -294,26 +201,117 @@ function save_new_post($newsData) {
                     'name'     => basename($news['featuredImgSrc']),
                     'tmp_name' => download_url($news['featuredImgSrc'])
                 );
-        
-                $media_id = media_handle_sideload($media_data, $chinese_post_id);
-        
-                set_post_thumbnail( $chinese_post_id, $media_id );
-                $chinese_post_id = wp_update_post(
+            
+                $media_id = media_handle_sideload($media_data, $english_post_id );
+            
+                set_post_thumbnail( $english_post_id , $media_id );
+                $english_post_id  = wp_update_post(
                     array(
-                        'ID'            => (int) $chinese_post_id,
-                        'category_name' => array($categoryZh),
+                        'ID'            => (int) $english_post_id ,
                         'post_status'   => 'publish',
                         'post_date'     => date('Y/m/d', strtotime($news['date'])),
-                        'post_content'  => $contentTag ? $contentTag : ''
+                        'post_content'  => $contentEngTag ? $contentEngTag : ''
                     )
                 );
+            
+            
+                $engUrl = $news['newsItemUrl'];
+                $chiUrl = str_replace('/us/', '/hk/', $engUrl);
+            
+                $newsChiContent = file_get_html($chiUrl, false);
+                if(!empty($newsChiContent)) {
+                    $contentTag = $newsChiContent->find(".articleContent", 0);
+                    $elementsToRemove = $contentTag->find('h2', 0);
+                    if ($elementsToRemove) {
+                        $news['title'] = $elementsToRemove->plaintext;
+                        $elementsToRemove->outertext = '';
+                    }
+                    $content = $contentTag->save();
+                    $categoryNewsZh = "news-zh";
+                    $chinese_post = array(
+                        'post_type' => 'post',
+                        'post_title'    => wp_strip_all_tags($news['title']),
+                        'post_content'  => $content,
+                        'post_author'   => get_current_user_id() ? get_current_user_id() : 1,
+                        'post_excerpt'  => wp_strip_all_tags($news['abstract']),
+                        'post_date'     => date('Y/m/d', strtotime($news['date']))
+                    );
+            
+                    $chinese_post_id = wp_insert_post($chinese_post);
+                    wp_set_post_terms($chinese_post_id, 'zh', 'language');
+                    
+                    $chinese_images = $contentTag ? $contentTag->find('img') : [];
+                    if($chinese_images !== null && isset($chinese_images) && !empty($chinese_images)) {
+                        foreach ($chinese_images as $image) {
+                            $origSrc = $src = trim($image->src);
+                            if (strpos($src, 'data:image') === 0) {
+                                // Skip current iteration and move to the next
+                                continue;
+                            }
+    
+                            if(strpos($src, 'http') === FALSE) {
+                                $src = $scm_hsu_edu_hk_home_url.$src;
+                            }
+                            // Download to temp folder
+                            $tmp = download_url( $src );
+                            $file_array = array();
+                            $newSrc = '';
+                
+                            preg_match('/[^\?]+\.(jpg|jpe|jpeg|gif|png)/i', $src, $matches);
+                            if (isset($matches[0]) && $matches[0]) {
+                                $file_array['name'] = basename($matches[0]);
+                                $file_array['tmp_name'] = $tmp;
+                                if ( is_wp_error( $tmp ) ) {
+                                    @unlink($file_array['tmp_name']);
+                                    $file_array['tmp_name'] = '';
+                                } else {
+                                    // do the validation and storage stuff
+                                    $imageId = media_handle_sideload( $file_array, $chinese_post_id, '');
+                
+                                    // If error storing permanently, unlink
+                                    if ( is_wp_error($imageId) ) {
+                                        @unlink($file_array['tmp_name']);
+                                    } else {
+                                        $newSrc = wp_get_attachment_url($imageId);
+                                    }
+                                }
+                            } else {
+                                @unlink($tmp);
+                            }
+                
+                            // Replace images url in code
+                            if ($newSrc) {
+                                $contentTag = str_replace(htmlentities($origSrc), $newSrc, $contentTag);
+                            }
+                        }
+                    }
+                    $media_data = array(
+                        'name'     => basename($news['featuredImgSrc']),
+                        'tmp_name' => download_url($news['featuredImgSrc'])
+                    );
+            
+                    $media_id = media_handle_sideload($media_data, $chinese_post_id);
+            
+                    set_post_thumbnail( $chinese_post_id, $media_id );
+                    $chinese_post_id = wp_update_post(
+                        array(
+                            'ID'            => (int) $chinese_post_id,
+                            'post_status'   => 'publish',
+                            'post_date'     => date('Y/m/d', strtotime($news['date'])),
+                            'post_content'  => $contentTag ? $contentTag : ''
+                        )
+                    );
+                }
+    
+    
+                if (function_exists('pll_save_post_translations')) {
+                    pll_save_post_translations(array('en' => $english_post_id, 'zh' => $chinese_post_id));
+                }
             }
-
-
-            if (function_exists('pll_save_post_translations')) {
-                pll_save_post_translations(array('en' => $english_post_id, 'zh' => $chinese_post_id));
-            }
+        } catch ( Exception $e) {
+            echo "Error Handle-".$e->getMessage();
         }
+
     }
 }
 
@@ -361,154 +359,53 @@ function save_new_event($event) {
 
     $news = $event;
     $scm_hsu_edu_hk_home_url = 'https://scm.hsu.edu.hk';
-    $category = "events";
     // Create a new WP_Query instance to check for existing posts
     $query = new WP_Query(array(
         'post_type' => 'post',
         'post_status' => 'publish',
-        'tax_query' => array(
-            array(
-                'taxonomy' => 'language',  // Replace with your actual taxonomy name
-                'field' => 'slug',  // Replace with 'name' if you are using language names instead of slugs
-                'terms' => 'en',
-            ),
-        ),
-        'category_name' => $category,
-        'posts_per_page' => 1,
+        'category_name' => "events",
         'title' => $news['title'],
     ));
 
     if (!$query->have_posts()) {
         try {
+            $category = get_category_by_slug('events');
+            $category_id = $category->term_id;
+         
             $newsEngContent = file_get_html($news['newsItemUrl'], false);
-        } catch ( Exception $e) {
-        }
-        if(!empty($newsEngContent)) {
-            $contentEngTag = $newsEngContent->find(".articleContent", 0);
-            $elementsToRemove = $contentEngTag->find('h2', 0);
-            if ($elementsToRemove) {
-                $elementsToRemove->outertext = '';
-            }
-            $content = $contentEngTag->save();
+            if(!empty($newsEngContent)) {
+                $contentEngTag = $newsEngContent->find(".articleContent", 0);
 
-            $post_eng_data = array(
-                'post_type' => 'post',
-                'post_title'    => wp_strip_all_tags($news['title']),
-                'post_content'  => $content,
-                'post_author'   => get_current_user_id(),
-                'category_name' => array($category),
-                'post_excerpt'  => wp_strip_all_tags($news['abstract']),
-                'post_date'     => date('Y/m/d', strtotime($news['date']))
-            );
-        
-            $english_post_id  = wp_insert_post($post_eng_data);
-            wp_set_post_terms($english_post_id , 'en', 'language');
-            
-            $images = $contentEngTag ? $contentEngTag->find('img') : [];
-            if($images !== null || isset($images) || !empty($images)) {
-				
-                foreach ($images as $image) {
-                    $origSrc = $src = trim($image->src);
-                    if (strpos($src, 'data:image') === 0) {
-                        // Skip current iteration and move to the next
-                        continue;
-                    }
-
-
-                    if(strpos($src, 'http') === FALSE) {
-                        $src = $scm_hsu_edu_hk_home_url.$src;
-                    }
-                    // Download to temp folder
-                    $tmp = download_url( $src );
-                    $file_array = array();
-                    $newSrc = '';
-            
-                    preg_match('/[^\?]+\.(jpg|jpe|jpeg|gif|png)/i', $src, $matches);
-                    if (isset($matches[0]) && $matches[0]) {
-                        $file_array['name'] = basename($matches[0]);
-                        $file_array['tmp_name'] = $tmp;
-                        if ( is_wp_error( $tmp ) ) {
-                            @unlink($file_array['tmp_name']);
-                            $file_array['tmp_name'] = '';
-                        } else {
-                            // do the validation and storage stuff
-                            print_r($file_array);
-							echo "<br>";
-							echo $english_post_id;
-							$imageId = media_handle_sideload( $file_array, $english_post_id, '');
-            
-                            // If error storing permanently, unlink
-                            if ( is_wp_error($imageId) ) {
-                                @unlink($file_array['tmp_name']);
-                            } else {
-                                $newSrc = wp_get_attachment_url($imageId);
-                            }
-                        }
-                    } else {
-                        @unlink($tmp);
-                    }
-            
-                    // Replace images url in code
-                    if ($newSrc) {
-                        $contentEngTag = str_replace(htmlentities($origSrc), $newSrc, $contentEngTag);
-                    }
-                }
-            }
-			
-            $media_data = array(
-                'name'     => basename($news['featuredImgSrc']),
-                'tmp_name' => download_url($news['featuredImgSrc'])
-            );
-        
-            $media_id = media_handle_sideload($media_data, $english_post_id );
-        
-            set_post_thumbnail( $english_post_id , $media_id );
-            $english_post_id  = wp_update_post(
-                array(
-                    'ID'            => (int) $english_post_id ,
-                    'category_name' => array($category),
-                    'post_status'   => 'publish',
-                    'post_date'     => date('Y/m/d', strtotime($news['date'])),
-                    'post_content'  => $contentEngTag ? $contentEngTag : ''
-                )
-            );
-
-            $engUrl = $news['newsItemUrl'];
-            $chiUrl = str_replace('/us/', '/hk/', $engUrl);
-            $categoryZh = "events-zh";
-        
-            $newsChiContent = file_get_html($chiUrl, false);
-            if(!empty($newsChiContent)) {
-                $contentTag = $newsChiContent->find(".articleContent", 0);
-                $elementsToRemove = $contentTag->find('h2', 0);
+                $elementsToRemove = $contentEngTag->find('h2', 0);
                 if ($elementsToRemove) {
                     $elementsToRemove->outertext = '';
                 }
-                $content = $contentTag->save();
-
-                $chinese_post = array(
+                $content = $contentEngTag->save();
+    
+                $post_eng_data = array(
                     'post_type' => 'post',
                     'post_title'    => wp_strip_all_tags($news['title']),
                     'post_content'  => $content,
-                    'post_author'   => get_current_user_id(),
-                    'category_name' => array($categoryZh),
+                    'post_author'   => get_current_user_id() ? get_current_user_id() : 1,
                     'post_excerpt'  => wp_strip_all_tags($news['abstract']),
-                    'post_date'     => date('Y/m/d', strtotime($news['date']))
+                    'post_date'     => date('Y/m/d', strtotime($news['date'])),
                 );
-        
-                $chinese_post_id = wp_insert_post($chinese_post);
-                wp_set_post_terms($chinese_post_id, 'zh', 'language');
-                
-                $chinese_images = $contentTag ? $contentTag->find('img') : [];
-                if($chinese_images !== null || isset($chinese_images) || !empty($chinese_images)) {
+            
+                $english_post_id  = wp_insert_post($post_eng_data);
+                wp_set_post_terms($english_post_id , 'en', 'language');
+                wp_set_post_categories($english_post_id, array($category_id));
 
-                    foreach ($chinese_images as $image) {
+                $images = $contentEngTag ? $contentEngTag->find('img') : [];
+                if($images !== null && isset($images) && !empty($images)) {
+                    
+                    foreach ($images as $image) {
                         $origSrc = $src = trim($image->src);
                         if (strpos($src, 'data:image') === 0) {
                             // Skip current iteration and move to the next
                             continue;
                         }
-
+    
+    
                         if(strpos($src, 'http') === FALSE) {
                             $src = $scm_hsu_edu_hk_home_url.$src;
                         }
@@ -516,7 +413,7 @@ function save_new_event($event) {
                         $tmp = download_url( $src );
                         $file_array = array();
                         $newSrc = '';
-            
+                
                         preg_match('/[^\?]+\.(jpg|jpe|jpeg|gif|png)/i', $src, $matches);
                         if (isset($matches[0]) && $matches[0]) {
                             $file_array['name'] = basename($matches[0]);
@@ -526,8 +423,8 @@ function save_new_event($event) {
                                 $file_array['tmp_name'] = '';
                             } else {
                                 // do the validation and storage stuff
-                                $imageId = media_handle_sideload( $file_array, $chinese_post_id, '');
-            
+                                $imageId = media_handle_sideload( $file_array, $english_post_id, '');
+                
                                 // If error storing permanently, unlink
                                 if ( is_wp_error($imageId) ) {
                                     @unlink($file_array['tmp_name']);
@@ -538,40 +435,138 @@ function save_new_event($event) {
                         } else {
                             @unlink($tmp);
                         }
-            
+                
                         // Replace images url in code
                         if ($newSrc) {
-                            $contentTag = str_replace(htmlentities($origSrc), $newSrc, $contentTag);
+                            $contentEngTag = str_replace(htmlentities($origSrc), $newSrc, $contentEngTag);
                         }
                     }
                 }
+
                 $media_data = array(
                     'name'     => basename($news['featuredImgSrc']),
                     'tmp_name' => download_url($news['featuredImgSrc'])
                 );
-        
-                $media_id = media_handle_sideload($media_data, $chinese_post_id);
-                set_post_thumbnail( $chinese_post_id, $media_id );
-                $chinese_post_id = wp_update_post(
+            
+                $media_id = media_handle_sideload($media_data, $english_post_id );
+            
+                set_post_thumbnail( $english_post_id , $media_id );
+                $english_post_id  = wp_update_post(
                     array(
-                        'ID'            => (int) $chinese_post_id,
-                        'category_name' => array($categoryZh),
+                        'ID'            => (int) $english_post_id ,
                         'post_status'   => 'publish',
                         'post_date'     => date('Y/m/d', strtotime($news['date'])),
-                        'post_content'  => $contentTag ? $contentTag : ''
+                        'post_content'  => $contentEngTag ? $contentEngTag : ''
                     )
                 );
+    
+                $engUrl = $news['newsItemUrl'];
+                $chiUrl = str_replace('/us/', '/hk/', $engUrl);
+                $category = get_category_by_slug("events-zh");
+                $category_id = $category->term_id;
+
+                $newsChiContent = file_get_html($chiUrl, false);
+                if(!empty($newsChiContent)) {
+                    $contentTag = $newsChiContent->find(".articleContent", 0);
+                    $elementsToRemove = $contentTag->find('h2', 0);
+                    if ($elementsToRemove) {
+                        $news['title'] = $elementsToRemove->plaintext;
+                        $elementsToRemove->outertext = '';
+                    }
+                    $content = $contentTag->save();
+    
+                    $chinese_post = array(
+                        'post_type' => 'post',
+                        'post_title'    => wp_strip_all_tags($news['title']),
+                        'post_content'  => $content,
+                        'post_author'   => get_current_user_id() ? get_current_user_id() : 1,
+                        'post_excerpt'  => wp_strip_all_tags($news['abstract']),
+                        'post_date'     => date('Y/m/d', strtotime($news['date']))
+                    );
+            
+                    $chinese_post_id = wp_insert_post($chinese_post);
+                    wp_set_post_terms($chinese_post_id, 'zh', 'language');
+                    $chinese_images = $contentTag ? $contentTag->find('img') : [];
+                    if($chinese_images !== null && isset($chinese_images) && !empty($chinese_images)) {
+    
+                        foreach ($chinese_images as $image) {
+                            $origSrc = $src = trim($image->src);
+                            if (strpos($src, 'data:image') === 0) {
+                                // Skip current iteration and move to the next
+                                continue;
+                            }
+    
+                            if(strpos($src, 'http') === FALSE) {
+                                $src = $scm_hsu_edu_hk_home_url.$src;
+                            }
+                            // Download to temp folder
+                            $tmp = download_url( $src );
+                            $file_array = array();
+                            $newSrc = '';
+                
+                            preg_match('/[^\?]+\.(jpg|jpe|jpeg|gif|png)/i', $src, $matches);
+                            if (isset($matches[0]) && $matches[0]) {
+                                $file_array['name'] = basename($matches[0]);
+                                $file_array['tmp_name'] = $tmp;
+                                if ( is_wp_error( $tmp ) ) {
+                                    @unlink($file_array['tmp_name']);
+                                    $file_array['tmp_name'] = '';
+                                } else {
+                                    // do the validation and storage stuff
+                                    $imageId = media_handle_sideload( $file_array, $chinese_post_id, '');
+                
+                                    // If error storing permanently, unlink
+                                    if ( is_wp_error($imageId) ) {
+                                        @unlink($file_array['tmp_name']);
+                                    } else {
+                                        $newSrc = wp_get_attachment_url($imageId);
+                                    }
+                                }
+                            } else {
+                                @unlink($tmp);
+                            }
+                
+                            // Replace images url in code
+                            if ($newSrc) {
+                                $contentTag = str_replace(htmlentities($origSrc), $newSrc, $contentTag);
+                            }
+                        }
+                    }
+                    $media_data = array(
+                        'name'     => basename($news['featuredImgSrc']),
+                        'tmp_name' => download_url($news['featuredImgSrc'])
+                    );
+
+                    wp_set_post_categories($chinese_post_id, array($category_id));
+
+                    $media_id = media_handle_sideload($media_data, $chinese_post_id);
+                    set_post_thumbnail( $chinese_post_id, $media_id );
+                    $chinese_post_id = wp_update_post(
+                        array(
+                            'ID'            => (int) $chinese_post_id,
+                            'post_status'   => 'publish',
+                            'post_date'     => date('Y/m/d', strtotime($news['date'])),
+                            'post_content'  => $contentTag ? $contentTag : '',
+                        )
+                    );
+                }
+                if (function_exists('pll_save_post_translations')) {
+                    pll_save_post_translations(array('en' => $english_post_id, 'zh' => $chinese_post_id));
+                }
             }
-            if (function_exists('pll_save_post_translations')) {
-                pll_save_post_translations(array('en' => $english_post_id, 'zh' => $chinese_post_id));
-            }
+        } catch ( Exception $e) {
+            echo "Error Handle-".$e->getMessage();
         }
+
     }
 }
 
 
 // * * * * * curl -s http://localhost/bingo/wp-json/scraping/v1
 function handle_custom_endpoint() {
+    // Import WordPress core files
+    require_once(ABSPATH . 'wp-load.php');
+    require_once(ABSPATH . 'wp-admin/includes/admin.php');
     global $wpdb;    
     //News update
     $scm_hsu_edu_hk_home_url = 'https://scm.hsu.edu.hk';
@@ -653,7 +648,7 @@ function handle_custom_endpoint() {
                 }
                 $thisDate = date('Y/m/d', strtotime($event['date']));
 				
-                if ("2023/04/20" === $thisDate) {
+                if ($currentDate === $thisDate) {
                     try {
 						save_new_event($event);
                     } catch (Exception $e) {

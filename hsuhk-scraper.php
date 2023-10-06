@@ -6,7 +6,7 @@
 
  *
 
- * @package           HSUHK Scrapping Tool
+ * @package           HSUHK Scraping Tool
 
  * @author            Software Engineer
 
@@ -18,7 +18,7 @@
 
  * @wordpress-plugin
 
- * Plugin Name:       WP HSUHK Update News
+ * Plugin Name:       HSUHK Scraping Tool
  * Plugin URI:        https://example.com/hsuskscrape 
 
  * Description:       Tool for scrapping new from https://scm.hsu.edu.hk/us/news/news
